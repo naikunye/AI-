@@ -142,12 +142,13 @@
 </script>
 </head>
   <body class="antialiased selection:bg-brand-500/30 selection:text-brand-200">
-    <div id="root" class="h-screen w-screen relative flex flex-col overflow-hidden font-sans text-gray-200">
-       <!-- Dynamic Background Layers -->
-       <div class="fixed inset-0 z-[-2] bg-[#020202]"></div>
-       <div class="fixed inset-0 z-[-1] bg-cyber-grid bg-grid opacity-20 animate-grid-move pointer-events-none"></div>
-       <div class="fixed top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow"></div>
-       <div class="fixed bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-accent-purple/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow" style="animation-delay: 2s"></div>
-    </div>
+    <!-- Dynamic Background Layers - Moved outside root to persist -->
+    <div class="fixed inset-0 z-[-2] bg-[#020202]"></div>
+    <div class="fixed inset-0 z-[-1] bg-cyber-grid bg-grid opacity-20 animate-grid-move pointer-events-none"></div>
+    <div class="fixed top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow"></div>
+    <div class="fixed bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-accent-purple/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow" style="animation-delay: 2s"></div>
+
+    <div id="root" class="h-screen w-screen relative flex flex-col overflow-hidden font-sans text-gray-200"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
