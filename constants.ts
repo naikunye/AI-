@@ -1,5 +1,5 @@
-import { Platform, Tone, ReviewClassification, Resolution, ReplyType } from './types';
-import { ShoppingBag, MessageSquare, ShoppingCart, Globe, Heart, Briefcase, Smile, ShieldAlert, Gift, Gavel, RefreshCw, Undo2, Headphones, ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
+import { Platform, Tone, ReviewClassification, Resolution, ReplyType, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory } from './types';
+import { ShoppingBag, MessageSquare, ShoppingCart, Globe, Heart, Briefcase, Smile, ShieldAlert, Gift, Gavel, RefreshCw, Undo2, Headphones, ThumbsUp, ThumbsDown, Minus, Zap, Monitor, Shirt, SprayCan, Home, Baby, Tent,  AlignJustify, AlignLeft, AlignRight, SmilePlus } from 'lucide-react';
 
 export const PLATFORM_CONFIG = {
   [Platform.AMAZON]: {
@@ -13,7 +13,7 @@ export const PLATFORM_CONFIG = {
     rules: "允许随意、充满活力的语气。鼓励使用表情符号。注重社区感。简短有力。"
   },
   [Platform.SHOPIFY]: {
-    label: "Shopify 独立站",
+    label: "独立站 (Shopify)",
     icon: ShoppingCart,
     rules: "品牌导向。语气完全可控。可以提供支持邮箱。专注于客户留存。"
   },
@@ -72,4 +72,35 @@ export const CLASSIFICATION_CONFIG = {
 export const REPLY_TYPE_LABELS = {
   [ReplyType.PUBLIC]: "公开回复 (Public)",
   [ReplyType.PRIVATE]: "私信/邮件 (Private)"
+};
+
+// --- NEW CONSTANTS ---
+
+export const LENGTH_CONFIG = {
+  [ReplyLength.SHORT]: { label: "简短 (Short)", icon: AlignJustify },
+  [ReplyLength.MEDIUM]: { label: "适中 (Medium)", icon: AlignLeft },
+  [ReplyLength.LONG]: { label: "详细 (Long)", icon: AlignRight },
+};
+
+export const EMOJI_CONFIG = {
+  [EmojiLevel.NONE]: { label: "无表情", icon: Minus },
+  [EmojiLevel.MINIMAL]: { label: "少量点缀", icon: Smile },
+  [EmojiLevel.HEAVY]: { label: "丰富活跃", icon: SmilePlus },
+};
+
+export const STYLE_CONFIG = {
+  [LanguageStyle.NATIVE_US]: { label: "美式地道 (Native US)" },
+  [LanguageStyle.BRITISH_FORMAL]: { label: "英式正式 (British)" },
+  [LanguageStyle.GEN_Z]: { label: "Z世代/俚语 (Gen Z)" },
+  [LanguageStyle.SIMPLE_ENGLISH]: { label: "简单英语 (Simple)" },
+};
+
+export const CATEGORY_CONFIG = {
+  [ProductCategory.GENERAL]: { label: "通用商品", icon: ShoppingBag },
+  [ProductCategory.ELECTRONICS]: { label: "3C/电子", icon: Monitor },
+  [ProductCategory.FASHION]: { label: "服装/鞋帽", icon: Shirt },
+  [ProductCategory.BEAUTY]: { label: "美妆个护", icon: SprayCan },
+  [ProductCategory.HOME]: { label: "家居/厨房", icon: Home },
+  [ProductCategory.KIDS]: { label: "母婴/玩具", icon: Baby },
+  [ProductCategory.OUTDOOR]: { label: "户外/运动", icon: Tent },
 };

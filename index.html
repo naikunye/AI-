@@ -3,45 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ReplyWise AI - 专业跨境电商回复助手</title>
+    <title>ReplyWise AI PRO | 智能跨境回复指挥台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-              mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
               brand: {
-                50: '#f0fdfa',
-                100: '#ccfbf1',
-                200: '#99f6e4',
-                300: '#5eead4',
-                400: '#2dd4bf',
-                500: '#14b8a6',
-                600: '#0d9488',
-                700: '#0f766e',
-                800: '#115e59',
-                900: '#134e4a',
-                950: '#042f2e',
+                DEFAULT: '#00F0FF', // Cyber Cyan
+                50: '#F0FDFF',
+                100: '#CCFBFF',
+                200: '#99F6FF',
+                300: '#5EEAFF',
+                400: '#00F0FF',
+                500: '#00C8D6',
+                600: '#0097A3',
+                700: '#006D75',
+                800: '#004C52',
+                900: '#003338',
               },
               dark: {
-                bg: '#0B0F19', // Deep space blue/black
-                card: '#111827',
-                border: '#1F2937'
+                bg: '#020202', 
+                surface: '#080808',
+                card: '#0D0D0D',
+                border: '#1F1F1F'
+              },
+              accent: {
+                purple: '#D946EF',
+                pink: '#F43F5E',
+                green: '#10B981',
+                orange: '#F97316'
               }
             },
             backgroundImage: {
-              'tech-gradient': 'radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.15) 0%, transparent 50%), radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%)',
-              'glass-dark': 'linear-gradient(145deg, rgba(17, 24, 39, 0.7) 0%, rgba(17, 24, 39, 0.4) 100%)',
+              'cyber-grid': 'linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px)',
+              'radial-glow': 'radial-gradient(circle at center, rgba(0, 240, 255, 0.08) 0%, transparent 70%)',
+            },
+            animation: {
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'scanline': 'scanline 8s linear infinite',
+              'grid-move': 'gridMove 20s linear infinite',
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'slide-up': 'slideUp 0.5s ease-out forwards',
+              'blink': 'blink 1s step-end infinite',
+            },
+            keyframes: {
+              scanline: {
+                '0%': { transform: 'translateY(-100%)' },
+                '100%': { transform: 'translateY(100%)' }
+              },
+              gridMove: {
+                '0%': { transform: 'translateY(0)' },
+                '100%': { transform: 'translateY(50px)' }
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' }
+              },
+              slideUp: {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' }
+              },
+              blink: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0' }
+              }
             },
             boxShadow: {
-              'glow': '0 0 20px -5px rgba(45, 212, 191, 0.3)',
-              'glow-blue': '0 0 20px -5px rgba(59, 130, 246, 0.3)',
+              'neon': '0 0 10px rgba(0, 240, 255, 0.2), 0 0 20px rgba(0, 240, 255, 0.1)',
+              'neon-purple': '0 0 10px rgba(217, 70, 239, 0.2), 0 0 20px rgba(217, 70, 239, 0.1)',
+              'glow-border': '0 0 0 1px rgba(0, 240, 255, 0.3)',
             }
           }
         }
@@ -49,33 +87,46 @@
     </script>
     <style>
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #030712; /* Very dark base */
-        color: #f3f4f6;
-        overflow: hidden; 
+        background-color: #020202;
+        color: #e5e7eb;
+        overflow-x: hidden;
       }
       
-      .bg-grid-pattern {
+      .bg-grid {
         background-size: 40px 40px;
-        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                          linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        mask-image: linear-gradient(to bottom, black 5%, transparent 90%);
       }
 
-      /* Custom scrollbar - Dark Tech Style */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
+      ::-webkit-scrollbar-track { background: #050505; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+      ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.5); }
+
+      /* Input Reset */
+      input, textarea, select {
+        color-scheme: dark;
       }
-      ::-webkit-scrollbar-track {
-        background: rgba(17, 24, 39, 0.5); 
+      
+      .glass-panel {
+        background: rgba(10, 10, 10, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
       }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(75, 85, 99, 0.6); 
-        border-radius: 4px;
-        border: 2px solid rgba(17, 24, 39, 0.5);
+
+      .text-shadow-sm {
+        text-shadow: 0 0 10px rgba(255,255,255,0.2);
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(107, 114, 128, 0.8); 
+      
+      .text-shadow-neon {
+        text-shadow: 0 0 5px rgba(0, 240, 255, 0.5), 0 0 10px rgba(0, 240, 255, 0.3);
       }
     </style>
   <script type="importmap">
@@ -90,11 +141,13 @@
 }
 </script>
 </head>
-  <body class="bg-grid-pattern">
-    <div id="root" class="h-screen w-screen relative">
-       <!-- Ambient Glows -->
-       <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none"></div>
-       <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-brand-500/10 blur-[120px] pointer-events-none"></div>
+  <body class="antialiased selection:bg-brand-500/30 selection:text-brand-200">
+    <div id="root" class="h-screen w-screen relative flex flex-col overflow-hidden font-sans text-gray-200">
+       <!-- Dynamic Background Layers -->
+       <div class="fixed inset-0 z-[-2] bg-[#020202]"></div>
+       <div class="fixed inset-0 z-[-1] bg-cyber-grid bg-grid opacity-20 animate-grid-move pointer-events-none"></div>
+       <div class="fixed top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow"></div>
+       <div class="fixed bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-accent-purple/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow" style="animation-delay: 2s"></div>
     </div>
   </body>
 </html>

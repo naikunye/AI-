@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Platform, Tone, GenerationResult, ReviewContext, Resolution, ReviewClassification, ReplyType } from '../types';
-import { PLATFORM_CONFIG, RESOLUTION_CONFIG } from '../constants';
+import { Platform, Tone, GenerationResult, ReviewContext, Resolution, ReviewClassification, ReplyType, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory } from '../types';
+import { PLATFORM_CONFIG, RESOLUTION_CONFIG, CATEGORY_CONFIG } from '../constants';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -13,6 +13,10 @@ const responseSchema = {
       type: Type.STRING,
       enum: Object.values(ReviewClassification),
       description: "Classify the review."
+    },
+    riskScore: {
+        type: Type.INTEGER,
+        description: "A score from 0 (Safe) to 100 (Extremely High Risk/Scam/Legal Threat)."
     },
     reviewSummary: {
       type: Type.STRING,
@@ -37,7 +41,7 @@ const responseSchema = {
       }
     }
   },
-  required: ["classification", "reviewSummary", "complianceNotes", "options"]
+  required: ["classification", "riskScore", "reviewSummary", "complianceNotes", "options"]
 };
 
 export const generateReviewReply = async (
@@ -45,41 +49,66 @@ export const generateReviewReply = async (
   platform: Platform,
   tone: Tone,
   resolution: Resolution,
-  context: ReviewContext
+  context: ReviewContext,
+  // New Parameters with Defaults
+  length: ReplyLength = ReplyLength.MEDIUM,
+  emoji: EmojiLevel = EmojiLevel.MINIMAL,
+  style: LanguageStyle = LanguageStyle.NATIVE_US
 ): Promise<GenerationResult> => {
   
   const platformRules = PLATFORM_CONFIG[platform].rules;
   const resolutionContext = resolution !== Resolution.NONE ? `Proposed Resolution: ${RESOLUTION_CONFIG[resolution].label}` : "Resolution: Standard customer service response.";
-  
+  const categoryLabel = context.category ? CATEGORY_CONFIG[context.category].label : "General Product";
+
+  // Logic for Emojis
+  let emojiInstruction = "Use minimal emojis (1-2) to be friendly.";
+  if (emoji === EmojiLevel.NONE) emojiInstruction = "DO NOT use any emojis. Keep it strictly text.";
+  if (emoji === EmojiLevel.HEAVY) emojiInstruction = "Use emojis frequently (3-5) to show high energy and friendliness.";
+
+  // Logic for Length
+  let lengthInstruction = "Keep the response length moderate (3-5 sentences).";
+  if (length === ReplyLength.SHORT) lengthInstruction = "Keep it very short and concise (1-2 sentences max). Direct to the point.";
+  if (length === ReplyLength.LONG) lengthInstruction = "Write a detailed, comprehensive response (5+ sentences) ensuring all concerns are fully addressed.";
+
   let prompt = `
     You are an expert E-commerce Customer Experience Manager assisting a Chinese seller who sells to the US market.
     
     **Task:** Analyze the customer review and generate 3 distinct reply options.
     
-    **CRITICAL REQUIREMENT:**
-    The seller does NOT speak good English. You must provide the reply in **English** (for the customer) AND a **Chinese translation** (for the seller to understand).
+    **Seller Settings:**
+    - **Platform:** ${platform} (Rules: ${platformRules})
+    - **Tone:** ${tone}
+    - **Resolution Strategy:** ${resolutionContext}
+    - **Product Category:** ${categoryLabel}
+    
+    **Style Preferences (CRITICAL):**
+    - **Length:** ${length} - ${lengthInstruction}
+    - **Emoji Usage:** ${emoji} - ${emojiInstruction}
+    - **Language Style:** ${style}
+    
+    **Context Data:**
+    - Customer Name: ${context.customerName || "N/A"}
+    - Product Name: ${context.productName || "N/A"}
+    - Key Points to Address: ${context.keyPointsToAddress || "N/A"}
 
-    **Input Data:**
-    - Customer Review: "${reviewText}"
-    - Platform: ${platform} (Rules: ${platformRules})
-    - Desired Tone: ${tone}
-    - Resolution Strategy: ${resolutionContext}
-    - Context: Customer Name: ${context.customerName || "N/A"}, Product: ${context.productName || "N/A"}, Notes: ${context.keyPointsToAddress || "N/A"}
+    **Input Review:**
+    "${reviewText}"
 
     **Classification Logic:**
-    - Detect "High Risk" (fake, scam, legal threats). 
+    - Detect "High Risk" (fake, scam, legal threats, policy violations). Assign a Risk Score (0-100).
     - Otherwise classify as Positive, Neutral, or Negative.
 
-    **Content Rules:**
+    **Content Guidelines:**
     - **Amazon:** No external links. No asking for personal contact info.
-    - **TikTok:** Casual, emojis allowed.
-    - **Language:** 'bodyEnglish' must be perfect, native US English. 'bodyChinese' must be a clear translation of that English text.
+    - **TikTok:** Casual, high energy allowed.
+    - **General:** Always follow the "Empathy -> Apology -> Action -> Closing" framework for negative reviews.
+    - **Language:** 'bodyEnglish' must be perfect, natural English matching the '${style}' preference. 'bodyChinese' must be a clear translation.
 
     **Output Structure:**
     Provide 3 options:
-    1. A standard/safe response.
-    2. A response focused on the specific resolution (if any).
-    3. A slightly different tone variation (e.g., shorter or more detailed).
+    1. A standard/safe response matching the settings.
+    2. A response focused heavily on the specific resolution or action.
+    3. A variation (e.g., if Short, make this one slightly more detailed; if Professional, make this one slightly warmer).
   `;
 
   try {

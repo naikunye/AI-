@@ -44,6 +44,36 @@ export enum TemplateCategory {
   OTHER = 'Other'
 }
 
+// --- NEW FEATURES ---
+export enum ReplyLength {
+  SHORT = 'Short',
+  MEDIUM = 'Medium',
+  LONG = 'Long'
+}
+
+export enum EmojiLevel {
+  NONE = 'None',
+  MINIMAL = 'Minimal',
+  HEAVY = 'Heavy'
+}
+
+export enum LanguageStyle {
+  NATIVE_US = 'Native US',
+  BRITISH_FORMAL = 'British Formal',
+  GEN_Z = 'Gen Z / Slang',
+  SIMPLE_ENGLISH = 'Simple English'
+}
+
+export enum ProductCategory {
+  GENERAL = 'General',
+  ELECTRONICS = 'Electronics',
+  FASHION = 'Fashion/Apparel',
+  BEAUTY = 'Beauty/Personal Care',
+  HOME = 'Home & Kitchen',
+  KIDS = 'Toys & Kids',
+  OUTDOOR = 'Sports & Outdoor'
+}
+
 export interface GeneratedReplyOption {
   type: ReplyType;
   headline: string; // Chinese Headline
@@ -54,6 +84,7 @@ export interface GeneratedReplyOption {
 
 export interface GenerationResult {
   classification: ReviewClassification;
+  riskScore: number; // 0-100 score of risk
   reviewSummary: string;
   complianceNotes: string;
   options: GeneratedReplyOption[];
@@ -63,6 +94,7 @@ export interface ReviewContext {
   customerName?: string;
   productName?: string;
   keyPointsToAddress?: string;
+  category?: ProductCategory; // New field
 }
 
 export interface HistoryItem {
