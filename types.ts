@@ -1,4 +1,5 @@
 
+
 export enum Platform {
   AMAZON = 'Amazon',
   TIKTOK_SHOP = 'TikTok Shop',

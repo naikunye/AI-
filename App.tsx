@@ -23,7 +23,8 @@ import {
   Package,
   Globe,
   PenTool,
-  AlertTriangle
+  AlertTriangle,
+  Key
 } from 'lucide-react';
 
 // --- Modern UI Components ---
@@ -129,6 +130,16 @@ const App: React.FC = () => {
     localStorage.setItem('replyWiseTemplates_v5', JSON.stringify(savedTemplates));
   }, [history, savedTemplates]);
 
+  const handleApiKeyConfig = async () => {
+    if (window.aistudio && window.aistudio.openSelectKey) {
+       await window.aistudio.openSelectKey();
+       // We don't force reload here, the service instantiates a new client which picks up the key
+       setError(null);
+    } else {
+       alert("API Key configuration is handled by the hosting environment.");
+    }
+  };
+
   const handleGenerate = async () => {
     if (!reviewText.trim()) return;
     setLoading(true);
@@ -139,6 +150,14 @@ const App: React.FC = () => {
     const minDelay = new Promise(resolve => setTimeout(resolve, 2500));
     
     try {
+      // Check for API Key presence via aistudio helper if available
+      if (window.aistudio && window.aistudio.hasSelectedApiKey) {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        if (!hasKey) {
+             throw new Error("API_KEY_MISSING");
+        }
+      }
+
       const finalContext = { ...context, category: productCategory };
       const [res] = await Promise.all([
         generateReviewReply(reviewText, platform, tone, resolution, finalContext, replyLength, emojiLevel, languageStyle),
@@ -151,9 +170,14 @@ const App: React.FC = () => {
       console.error(e);
       // More descriptive error messages
       let msg = "系统出了点小问题，请重试";
-      if (e.message?.includes("API key")) msg = "API Key 配置缺失或无效";
-      else if (e.message?.includes("fetch")) msg = "网络连接失败，请检查网络";
-      else if (e.message) msg = e.message;
+      
+      if (e.message === "API_KEY_MISSING" || e.message?.includes("API key")) {
+          msg = "API Key 未配置";
+      } else if (e.message?.includes("fetch")) {
+          msg = "网络连接失败，请检查网络";
+      } else if (e.message) {
+          msg = e.message;
+      }
       setError(msg);
     } finally {
       setLoading(false);
@@ -201,6 +225,18 @@ const App: React.FC = () => {
                 <span className="text-[11px] font-bold">话术库</span>
              </button>
           </nav>
+
+          {/* Bottom Actions */}
+          <div className="w-full px-3 pb-4">
+             <button 
+                onClick={handleApiKeyConfig}
+                className="w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 text-slate-500 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5"
+                title="配置 API Key"
+             >
+                <Key className="w-5 h-5" />
+                <span className="text-[10px] font-bold">API</span>
+             </button>
+          </div>
       </aside>
 
       {/* --- Main Workspace --- */}
@@ -360,15 +396,23 @@ const App: React.FC = () => {
 
                    {/* Error State */}
                    {error && !loading && (
-                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-200 animate-fade-in backdrop-blur-md">
-                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <AlertTriangle className="w-4 h-4 text-red-400" />
+                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-200 animate-fade-in backdrop-blur-md shadow-lg shadow-red-500/10">
+                        <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-5 h-5 text-red-400" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-red-400">系统警报</h4>
-                          <p className="text-xs opacity-90 leading-relaxed font-mono">{error}</p>
+                          <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-red-400">系统错误</h4>
+                          <p className="text-xs opacity-90 font-mono mb-2">{error}</p>
+                          {error.includes("API Key") && (
+                            <button 
+                              onClick={handleApiKeyConfig}
+                              className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                            >
+                              配置 API Key
+                            </button>
+                          )}
                         </div>
-                        <button onClick={() => setError(null)} className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-400">
+                        <button onClick={() => setError(null)} className="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400 self-start">
                           <X size={16} />
                         </button>
                       </div>

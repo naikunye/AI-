@@ -42,18 +42,6 @@ const responseSchema = {
   required: ["classification", "riskScore", "reviewSummary", "complianceNotes", "options"]
 };
 
-// Lazy initialization of the AI client to prevent top-level crashes
-let ai: GoogleGenAI | null = null;
-
-const getAIClient = () => {
-  if (!ai) {
-    // We strictly use process.env.API_KEY as required. 
-    // In a production environment, ensure this is replaced by the build tool or polyfilled.
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return ai;
-};
-
 export const generateReviewReply = async (
   reviewText: string,
   platform: Platform,
@@ -66,6 +54,11 @@ export const generateReviewReply = async (
   style: LanguageStyle = LanguageStyle.NATIVE_US
 ): Promise<GenerationResult> => {
   
+  // CRITICAL: Always instantiate the client inside the function call.
+  // This ensures that if the user selects an API Key via window.aistudio.openSelectKey(),
+  // the new key (injected into process.env.API_KEY) is used immediately without a page reload.
+  const client = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   const platformRules = PLATFORM_CONFIG[platform].rules;
   const resolutionContext = resolution !== Resolution.NONE ? `Proposed Resolution: ${RESOLUTION_CONFIG[resolution].label}` : "Resolution: Standard customer service response.";
   const categoryLabel = context.category ? CATEGORY_CONFIG[context.category].label : "General Product";
@@ -122,7 +115,6 @@ export const generateReviewReply = async (
   `;
 
   try {
-    const client = getAIClient();
     const response = await client.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
