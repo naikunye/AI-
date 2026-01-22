@@ -23,6 +23,7 @@ import {
   Package,
   Globe,
   PenTool,
+  AlertTriangle
 } from 'lucide-react';
 
 // --- Modern UI Components ---
@@ -147,7 +148,13 @@ const App: React.FC = () => {
       setResult(res);
       setHistory(prev => [{ id: Date.now().toString(), timestamp: Date.now(), originalReview: reviewText, platform, result: res }, ...prev].slice(0, 50));
     } catch (e: any) {
-      setError(e.message || "系统出了点小问题，请重试");
+      console.error(e);
+      // More descriptive error messages
+      let msg = "系统出了点小问题，请重试";
+      if (e.message?.includes("API key")) msg = "API Key 配置缺失或无效";
+      else if (e.message?.includes("fetch")) msg = "网络连接失败，请检查网络";
+      else if (e.message) msg = e.message;
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -351,7 +358,23 @@ const App: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar">
                    {loading && <ProcessingTerminal />}
 
-                   {!result && !loading && (
+                   {/* Error State */}
+                   {error && !loading && (
+                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-200 animate-fade-in backdrop-blur-md">
+                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <AlertTriangle className="w-4 h-4 text-red-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-red-400">系统警报</h4>
+                          <p className="text-xs opacity-90 leading-relaxed font-mono">{error}</p>
+                        </div>
+                        <button onClick={() => setError(null)} className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-400">
+                          <X size={16} />
+                        </button>
+                      </div>
+                   )}
+
+                   {!result && !loading && !error && (
                       <div className="h-full flex flex-col items-center justify-center space-y-8 opacity-60">
                          <div className="relative group">
                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000"></div>

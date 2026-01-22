@@ -136,7 +136,10 @@ export const generateReviewReply = async (
     const text = response.text;
     if (!text) throw new Error("No response from AI");
 
-    return JSON.parse(text) as GenerationResult;
+    // Robust cleaning: remove Markdown code fences if present (```json or ```)
+    const cleanText = text.replace(/```json\n?|```/g, '').trim();
+
+    return JSON.parse(cleanText) as GenerationResult;
 
   } catch (error) {
     console.error("Gemini API Error:", error);
