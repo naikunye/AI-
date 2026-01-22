@@ -77,6 +77,15 @@ export const generateReviewReply = async (
   if (length === ReplyLength.SHORT) lengthInstruction = "Keep it very short and concise (1-2 sentences max). Direct to the point.";
   if (length === ReplyLength.LONG) lengthInstruction = "Write a detailed, comprehensive response (5+ sentences) ensuring all concerns are fully addressed.";
 
+  // Custom Rules Logic
+  let customRulesInstruction = "";
+  if (context.customRules && context.customRules.trim() !== "") {
+    customRulesInstruction = `
+    **IMPORTANT - CUSTOM BRAND RULES (MUST FOLLOW):**
+    ${context.customRules}
+    `;
+  }
+
   let prompt = `
     You are an expert E-commerce Customer Experience Manager assisting a Chinese seller who sells to the US market.
     
@@ -92,6 +101,7 @@ export const generateReviewReply = async (
     - **Length:** ${length} - ${lengthInstruction}
     - **Emoji Usage:** ${emoji} - ${emojiInstruction}
     - **Language Style:** ${style}
+    ${customRulesInstruction}
     
     **Context Data:**
     - Customer Name: ${context.customerName || "N/A"}

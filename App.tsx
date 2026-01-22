@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Platform, Tone, GenerationResult, ReviewContext, HistoryItem, Resolution, SavedTemplate, TemplateCategory, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory, ReviewClassification } from './types';
 import { PLATFORM_CONFIG, TONE_CONFIG, RESOLUTION_CONFIG, CLASSIFICATION_CONFIG, LENGTH_CONFIG, STYLE_CONFIG, CATEGORY_CONFIG } from './constants';
 import { generateReviewReply } from './services/geminiService';
@@ -27,7 +27,13 @@ import {
   Key,
   User,
   ShoppingBag,
-  ExternalLink
+  ExternalLink,
+  Clipboard,
+  Trash2,
+  FileText,
+  Download,
+  Upload,
+  BookOpen
 } from 'lucide-react';
 
 // --- Modern UI Components ---
@@ -117,6 +123,9 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Partial<SavedTemplate>>({});
   const [tagsInput, setTagsInput] = useState('');
+  
+  // Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initial Load
   useEffect(() => {
@@ -125,6 +134,8 @@ const App: React.FC = () => {
       if (hist) setHistory(JSON.parse(hist));
       const tmpl = localStorage.getItem('replyWiseTemplates_v5');
       setSavedTemplates(tmpl ? JSON.parse(tmpl) : DEFAULT_TEMPLATES);
+      const ctx = localStorage.getItem('replyWiseContext_v5');
+      if (ctx) setContext(JSON.parse(ctx));
     } catch (e) { console.error(e); }
   }, []);
 
@@ -132,14 +143,13 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('replyWiseHistory_v5', JSON.stringify(history));
     localStorage.setItem('replyWiseTemplates_v5', JSON.stringify(savedTemplates));
-  }, [history, savedTemplates]);
+    localStorage.setItem('replyWiseContext_v5', JSON.stringify(context));
+  }, [history, savedTemplates, context]);
 
   const handleOpenSettings = async () => {
-    // Try to auto-connect if window.aistudio exists (Project IDX environment)
     if (window.aistudio && window.aistudio.openSelectKey) {
        await window.aistudio.openSelectKey();
     }
-    // Always open the modal to allow context editing or manual env var guidance
     setIsSettingsOpen(true);
     setError(null);
   };
@@ -154,7 +164,6 @@ const App: React.FC = () => {
     const minDelay = new Promise(resolve => setTimeout(resolve, 2500));
     
     try {
-      // Check for API Key presence via aistudio helper if available
       if (window.aistudio && window.aistudio.hasSelectedApiKey) {
         const hasKey = await window.aistudio.hasSelectedApiKey();
         if (!hasKey) {
@@ -172,9 +181,7 @@ const App: React.FC = () => {
       setHistory(prev => [{ id: Date.now().toString(), timestamp: Date.now(), originalReview: reviewText, platform, result: res }, ...prev].slice(0, 50));
     } catch (e: any) {
       console.error(e);
-      // More descriptive error messages
       let msg = "系统出了点小问题，请重试";
-      
       if (e.message === "API_KEY_MISSING" || e.message?.includes("API key")) {
           msg = "API Key 未配置";
       } else if (e.message?.includes("fetch")) {
@@ -193,6 +200,62 @@ const App: React.FC = () => {
     const newTmpl = { ...editingTemplate, tags: tagsInput.split(/[,，]/).map(t => t.trim()).filter(Boolean), id: editingTemplate.id || Date.now().toString(), createdAt: Date.now() } as SavedTemplate;
     setSavedTemplates(prev => editingTemplate.id ? prev.map(t => t.id === newTmpl.id ? newTmpl : t) : [newTmpl, ...prev]);
     setIsSaveModalOpen(false);
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setReviewText(text);
+    } catch (err) {
+      console.error('Failed to read clipboard contents: ', err);
+    }
+  };
+
+  const handleFillDemo = () => {
+    const demos = [
+       "The item arrived two days late and the box was crushed. I intended this as a gift for my niece's birthday which is tomorrow. Very disappointed with the shipping.",
+       "Absolutely love this product! The build quality is amazing and it feels very premium. Will definitely buy again.",
+       "Product works but the instructions are in Chinese only. I can't figure out how to set the timer. Can someone help?"
+    ];
+    setReviewText(demos[Math.floor(Math.random() * demos.length)]);
+  };
+
+  const handleExportData = () => {
+    const data = {
+      history,
+      templates: savedTemplates,
+      context
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `replywise_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        if (json.history) setHistory(json.history);
+        if (json.templates) setSavedTemplates(json.templates);
+        if (json.context) setContext(json.context);
+        alert('数据导入成功！');
+      } catch (err) {
+        alert('无法解析文件，请确保格式正确。');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
@@ -269,7 +332,13 @@ const App: React.FC = () => {
                            <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#d946ef]"></div>
                            <h2 className="text-sm font-bold text-white tracking-wide">客户反馈 / 评论</h2>
                          </div>
-                         <div className="text-[10px] text-slate-500 font-mono bg-white/5 px-2 py-1 rounded-md">{reviewText.length} 字</div>
+                         
+                         {/* Input Toolbar */}
+                         <div className="flex gap-1 bg-white/5 rounded-lg p-0.5">
+                            <button onClick={handlePaste} title="粘贴内容" className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-md transition-colors"><Clipboard size={12} /></button>
+                            <button onClick={handleFillDemo} title="随机示例" className="p-1.5 text-slate-400 hover:text-fuchsia-400 hover:bg-white/10 rounded-md transition-colors"><FileText size={12} /></button>
+                            {reviewText && <button onClick={() => setReviewText('')} title="清空" className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded-md transition-colors"><Trash2 size={12} /></button>}
+                         </div>
                       </div>
                       
                       <div className="relative group">
@@ -281,6 +350,9 @@ const App: React.FC = () => {
                               placeholder="请粘贴买家的评论或私信内容..."
                               className="w-full h-40 bg-transparent rounded-xl p-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none resize-none leading-relaxed custom-scrollbar"
                            />
+                           <div className="absolute bottom-2 right-3 text-[10px] text-slate-600 font-mono pointer-events-none">
+                              {reviewText.length} 字符
+                           </div>
                          </div>
                       </div>
                    </section>
@@ -605,7 +677,7 @@ const App: React.FC = () => {
       {/* Settings Modal (Replaces old Alert) */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-fade-in p-4">
-           <div className="bg-[#0f172a] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative animate-float">
+           <div className="bg-[#0f172a] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative">
               {/* Header Gradient */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
               
@@ -698,6 +770,49 @@ const App: React.FC = () => {
                            placeholder="例如：强调我们提供30天无理由退款，提醒客户查看说明书..."
                            className="w-full h-24 bg-black/20 border border-white/10 rounded-xl p-3 text-xs text-slate-200 resize-none outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
                        />
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-wider flex items-center gap-2">
+                          <BookOpen size={12} />
+                          全局自定义规则 (Brand Rules)
+                       </label>
+                       <textarea 
+                           value={context.customRules || ''} 
+                           onChange={e => setContext({...context, customRules: e.target.value})} 
+                           placeholder="例如：所有回复必须以 'Best regards, The Support Team' 结尾；禁止提及具体的退款金额；始终推荐客户查看FAQ页面。"
+                           className="w-full h-32 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-xl p-3 text-xs text-slate-200 resize-none outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
+                       />
+                       <p className="text-[9px] text-slate-500">* 此规则将强制应用于所有生成的回复中。</p>
+                    </div>
+                 </div>
+
+                 {/* Data Management Section */}
+                 <div className="space-y-4 pt-4 border-t border-white/5">
+                    <ModernHeader title="数据备份与恢复" icon={Database} />
+                    <div className="grid grid-cols-2 gap-4">
+                       <button 
+                          onClick={handleExportData}
+                          className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition-all"
+                       >
+                          <Download size={14} />
+                          导出数据 (JSON)
+                       </button>
+                       <div className="relative">
+                          <input 
+                             type="file" 
+                             ref={fileInputRef}
+                             onChange={handleImportData}
+                             accept=".json"
+                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <button 
+                             className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition-all pointer-events-none"
+                          >
+                             <Upload size={14} />
+                             导入数据
+                          </button>
+                       </div>
                     </div>
                  </div>
 

@@ -1,5 +1,4 @@
 
-
 export enum Platform {
   AMAZON = 'Amazon',
   TIKTOK_SHOP = 'TikTok Shop',
@@ -95,7 +94,8 @@ export interface ReviewContext {
   customerName?: string;
   productName?: string;
   keyPointsToAddress?: string;
-  category?: ProductCategory; // New field
+  category?: ProductCategory;
+  customRules?: string; // New: Global custom instructions
 }
 
 export interface HistoryItem {
