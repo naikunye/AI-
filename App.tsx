@@ -24,7 +24,10 @@ import {
   Globe,
   PenTool,
   AlertTriangle,
-  Key
+  Key,
+  User,
+  ShoppingBag,
+  ExternalLink
 } from 'lucide-react';
 
 // --- Modern UI Components ---
@@ -111,6 +114,7 @@ const App: React.FC = () => {
 
   // Modals
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Partial<SavedTemplate>>({});
   const [tagsInput, setTagsInput] = useState('');
 
@@ -130,14 +134,14 @@ const App: React.FC = () => {
     localStorage.setItem('replyWiseTemplates_v5', JSON.stringify(savedTemplates));
   }, [history, savedTemplates]);
 
-  const handleApiKeyConfig = async () => {
+  const handleOpenSettings = async () => {
+    // Try to auto-connect if window.aistudio exists (Project IDX environment)
     if (window.aistudio && window.aistudio.openSelectKey) {
        await window.aistudio.openSelectKey();
-       // We don't force reload here, the service instantiates a new client which picks up the key
-       setError(null);
-    } else {
-       alert("API Key configuration is handled by the hosting environment.");
     }
+    // Always open the modal to allow context editing or manual env var guidance
+    setIsSettingsOpen(true);
+    setError(null);
   };
 
   const handleGenerate = async () => {
@@ -229,12 +233,12 @@ const App: React.FC = () => {
           {/* Bottom Actions */}
           <div className="w-full px-3 pb-4">
              <button 
-                onClick={handleApiKeyConfig}
+                onClick={handleOpenSettings}
                 className="w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 text-slate-500 hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5"
-                title="配置 API Key"
+                title="系统设置"
              >
-                <Key className="w-5 h-5" />
-                <span className="text-[10px] font-bold">API</span>
+                <Settings className="w-5 h-5" />
+                <span className="text-[10px] font-bold">设置</span>
              </button>
           </div>
       </aside>
@@ -405,7 +409,7 @@ const App: React.FC = () => {
                           <p className="text-xs opacity-90 font-mono mb-2">{error}</p>
                           {error.includes("API Key") && (
                             <button 
-                              onClick={handleApiKeyConfig}
+                              onClick={() => setIsSettingsOpen(true)}
                               className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
                             >
                               配置 API Key
@@ -593,6 +597,114 @@ const App: React.FC = () => {
               <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end gap-4 shrink-0">
                  <button onClick={() => setIsSaveModalOpen(false)} className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider transition-colors">取消</button>
                  <button onClick={saveTemplate} className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:shadow-glow-sm transition-all">确认保存</button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* Settings Modal (Replaces old Alert) */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-fade-in p-4">
+           <div className="bg-[#0f172a] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative animate-float">
+              {/* Header Gradient */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+              
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                 <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-widest">
+                    <Settings className="w-4 h-4 text-fuchsia-400"/> 系统设置
+                 </h2>
+                 <button onClick={() => setIsSettingsOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20}/></button>
+              </div>
+
+              <div className="p-6 space-y-8 overflow-y-auto custom-scrollbar">
+                 
+                 {/* API Status Section */}
+                 <div className="space-y-3">
+                    <ModernHeader title="API 连接状态" icon={Key} />
+                    
+                    {(!process.env.API_KEY || process.env.API_KEY === '') ? (
+                       <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                          <div className="flex items-center gap-2 text-red-400 font-bold text-xs mb-2">
+                             <AlertTriangle size={14} />
+                             <span>未检测到 API Key</span>
+                          </div>
+                          <p className="text-[11px] text-red-200/80 leading-relaxed mb-3">
+                             由于安全策略限制，本页面无法直接输入保存 API Key。请前往您的托管平台（如 Vercel）配置环境变量。
+                          </p>
+                          <div className="bg-black/40 rounded-lg p-3 font-mono text-[10px] text-fuchsia-400 mb-3 border border-white/5 flex items-center justify-between group cursor-copy" onClick={() => navigator.clipboard.writeText('API_KEY')}>
+                             <span>API_KEY=your_google_api_key</span>
+                             <span className="opacity-0 group-hover:opacity-100 text-slate-500">复制变量名</span>
+                          </div>
+                          <a 
+                             href="https://aistudio.google.com/app/apikey" 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="inline-flex items-center gap-2 text-[10px] font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-colors"
+                          >
+                             <ExternalLink size={12} />
+                             获取 Google API Key
+                          </a>
+                       </div>
+                    ) : (
+                       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                             <Key size={14} className="text-emerald-400" />
+                          </div>
+                          <div>
+                             <div className="text-xs font-bold text-emerald-400">已连接</div>
+                             <div className="text-[10px] text-emerald-200/60 font-mono">环境变量已成功加载</div>
+                          </div>
+                       </div>
+                    )}
+                 </div>
+
+                 {/* Default Context Section */}
+                 <div className="space-y-4">
+                    <ModernHeader title="默认上下文预设" icon={User} />
+                    <p className="text-[10px] text-slate-500 -mt-2">预先填入以下信息，AI 生成时会自动带入，无需重复输入。</p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">默认客户名称</label>
+                          <div className="relative">
+                             <User className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-500" />
+                             <input 
+                                 value={context.customerName || ''} 
+                                 onChange={e => setContext({...context, customerName: e.target.value})} 
+                                 placeholder="Customer Name"
+                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
+                             />
+                          </div>
+                       </div>
+                       <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">默认产品名称</label>
+                          <div className="relative">
+                             <ShoppingBag className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-500" />
+                             <input 
+                                 value={context.productName || ''} 
+                                 onChange={e => setContext({...context, productName: e.target.value})} 
+                                 placeholder="Product Name"
+                                 className="w-full bg-black/20 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
+                             />
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">关键回复要点 (Key Points)</label>
+                       <textarea 
+                           value={context.keyPointsToAddress || ''} 
+                           onChange={e => setContext({...context, keyPointsToAddress: e.target.value})} 
+                           placeholder="例如：强调我们提供30天无理由退款，提醒客户查看说明书..."
+                           className="w-full h-24 bg-black/20 border border-white/10 rounded-xl p-3 text-xs text-slate-200 resize-none outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
+                       />
+                    </div>
+                 </div>
+
+              </div>
+
+              <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end shrink-0">
+                 <button onClick={() => setIsSettingsOpen(false)} className="px-6 py-2 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-white/90 transition-all shadow-lg shadow-white/10">完成</button>
               </div>
            </div>
         </div>

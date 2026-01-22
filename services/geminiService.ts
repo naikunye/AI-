@@ -54,9 +54,13 @@ export const generateReviewReply = async (
   style: LanguageStyle = LanguageStyle.NATIVE_US
 ): Promise<GenerationResult> => {
   
-  // CRITICAL: Always instantiate the client inside the function call.
-  // This ensures that if the user selects an API Key via window.aistudio.openSelectKey(),
-  // the new key (injected into process.env.API_KEY) is used immediately without a page reload.
+  // CRITICAL: Check for API Key explicitly before attempting to create client or call API.
+  if (!process.env.API_KEY || process.env.API_KEY === '') {
+    throw new Error("API_KEY_MISSING");
+  }
+
+  // Always instantiate the client inside the function call.
+  // This ensures that if the environment variable changes (unlikely in client-side but good practice) it is picked up.
   const client = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const platformRules = PLATFORM_CONFIG[platform].rules;
