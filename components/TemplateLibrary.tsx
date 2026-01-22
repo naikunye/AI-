@@ -26,12 +26,20 @@ export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ templates, onD
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const filteredTemplates = templates.filter(t => {
+    // Filter by Category sidebar
     const matchesCategory = selectedCategory === TemplateCategory.ALL || t.category === selectedCategory;
+    
+    // Filter by Search Query
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = t.title.toLowerCase().includes(searchLower) || 
-                          t.contentEnglish.toLowerCase().includes(searchLower) ||
-                          (t.contentChinese && t.contentChinese.includes(searchLower)) ||
-                          t.tags?.some(tag => tag.toLowerCase().includes(searchLower));
+    const matchesSearch = 
+        t.title.toLowerCase().includes(searchLower) || 
+        t.contentEnglish.toLowerCase().includes(searchLower) ||
+        (t.contentChinese && t.contentChinese.toLowerCase().includes(searchLower)) ||
+        t.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+        // Expanded: Search by Platform and Category name
+        t.platform.toLowerCase().includes(searchLower) ||
+        t.category.toLowerCase().includes(searchLower);
+
     return matchesCategory && matchesSearch;
   });
 
@@ -58,7 +66,7 @@ export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ templates, onD
                 <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono tracking-wide">在线</span>
               </h2>
               <p className="text-[10px] text-slate-500 font-mono mt-1 tracking-widest uppercase">
-                {templates.length} 条记录 // 已加密存储
+                {filteredTemplates.length} 条记录 // 已加密存储
               </p>
            </div>
         </div>
@@ -70,7 +78,7 @@ export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ templates, onD
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-hover:text-fuchsia-400 transition-colors" />
             <input 
               type="text" 
-              placeholder="搜索模板内容、标题或标签..." 
+              placeholder="搜索内容、平台、分类或标签..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-medium text-white placeholder:text-slate-600 focus:border-fuchsia-500/50 outline-none transition-all"

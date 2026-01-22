@@ -147,8 +147,12 @@ const App: React.FC = () => {
   }, [history, savedTemplates, context]);
 
   const handleOpenSettings = async () => {
-    if (window.aistudio && window.aistudio.openSelectKey) {
-       await window.aistudio.openSelectKey();
+    try {
+      if (window.aistudio && window.aistudio.openSelectKey) {
+        await window.aistudio.openSelectKey();
+      }
+    } catch (e) {
+      console.error("Failed to open key selector:", e);
     }
     setIsSettingsOpen(true);
     setError(null);
@@ -182,9 +186,13 @@ const App: React.FC = () => {
     } catch (e: any) {
       console.error(e);
       let msg = "系统出了点小问题，请重试";
-      if (e.message === "API_KEY_MISSING" || e.message?.includes("API key")) {
+      const errStr = e.toString() + (e.message || "");
+      
+      if (errStr.includes("API_KEY_MISSING") || errStr.includes("API key")) {
           msg = "API Key 未配置";
-      } else if (e.message?.includes("fetch")) {
+      } else if (errStr.includes("Requested entity was not found")) {
+          msg = "API Key 无效或项目不存在，请重新配置";
+      } else if (errStr.includes("fetch")) {
           msg = "网络连接失败，请检查网络";
       } else if (e.message) {
           msg = e.message;
@@ -208,6 +216,8 @@ const App: React.FC = () => {
       setReviewText(text);
     } catch (err) {
       console.error('Failed to read clipboard contents: ', err);
+      // Graceful fallback: Inform user to use keyboard shortcut
+      alert("由于浏览器安全策略限制，无法自动读取剪贴板。请直接使用键盘快捷键 (Ctrl+V 或 Cmd+V) 粘贴内容。");
     }
   };
 
@@ -479,9 +489,9 @@ const App: React.FC = () => {
                         <div className="flex-1">
                           <h4 className="text-sm font-bold uppercase tracking-wider mb-1 text-red-400">系统错误</h4>
                           <p className="text-xs opacity-90 font-mono mb-2">{error}</p>
-                          {error.includes("API Key") && (
+                          {(error.includes("API Key") || error.includes("配置")) && (
                             <button 
-                              onClick={() => setIsSettingsOpen(true)}
+                              onClick={handleOpenSettings}
                               className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
                             >
                               配置 API Key
