@@ -3,11 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ReplyWise AI PRO | 智能跨境回复指挥台</title>
+    <title>ReplyWise AI PRO | Next-Gen Response System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
-      // 关键修复: Polyfill process 对象，防止浏览器因找不到 process 而报错白屏
       window.process = window.process || { env: {} };
 
       tailwind.config = {
@@ -15,74 +16,57 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
+              sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
             },
             colors: {
+              background: '#030014', // Deep cosmic dark
+              surface: '#0f172a',
+              
+              // Modern Gradient Brand Colors
               brand: {
-                DEFAULT: '#00F0FF', // Cyber Cyan
-                50: '#F0FDFF',
-                100: '#CCFBFF',
-                200: '#99F6FF',
-                300: '#5EEAFF',
-                400: '#00F0FF',
-                500: '#00C8D6',
-                600: '#0097A3',
-                700: '#006D75',
-                800: '#004C52',
-                900: '#003338',
+                start: '#7c3aed', // Violet
+                end: '#db2777',   // Pink
+                cyan: '#06b6d4',
               },
-              dark: {
-                bg: '#020202', 
-                surface: '#080808',
-                card: '#0D0D0D',
-                border: '#1F1F1F'
-              },
-              accent: {
-                purple: '#D946EF',
-                pink: '#F43F5E',
-                green: '#10B981',
-                orange: '#F97316'
+              
+              glass: {
+                border: 'rgba(255, 255, 255, 0.08)',
+                surface: 'rgba(255, 255, 255, 0.03)',
+                highlight: 'rgba(255, 255, 255, 0.1)',
               }
             },
             backgroundImage: {
-              'cyber-grid': 'linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px)',
-              'radial-glow': 'radial-gradient(circle at center, rgba(0, 240, 255, 0.08) 0%, transparent 70%)',
-            },
-            animation: {
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'scanline': 'scanline 8s linear infinite',
-              'grid-move': 'gridMove 20s linear infinite',
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
-              'slide-up': 'slideUp 0.5s ease-out forwards',
-              'blink': 'blink 1s step-end infinite',
-            },
-            keyframes: {
-              scanline: {
-                '0%': { transform: 'translateY(-100%)' },
-                '100%': { transform: 'translateY(100%)' }
-              },
-              gridMove: {
-                '0%': { transform: 'translateY(0)' },
-                '100%': { transform: 'translateY(50px)' }
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' }
-              },
-              slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
-                '100%': { transform: 'translateY(0)', opacity: '1' }
-              },
-              blink: {
-                '0%, 100%': { opacity: '1' },
-                '50%': { opacity: '0' }
-              }
+              'cosmic-gradient': 'linear-gradient(to bottom right, #0f172a, #030014)',
+              'glass-shine': 'linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.05) 25%, transparent 30%)',
+              'primary-gradient': 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+              'grid-pattern': "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E\")",
             },
             boxShadow: {
-              'neon': '0 0 10px rgba(0, 240, 255, 0.2), 0 0 20px rgba(0, 240, 255, 0.1)',
-              'neon-purple': '0 0 10px rgba(217, 70, 239, 0.2), 0 0 20px rgba(217, 70, 239, 0.1)',
-              'glow-border': '0 0 0 1px rgba(0, 240, 255, 0.3)',
+              'glow-sm': '0 0 20px rgba(124, 58, 237, 0.3)',
+              'glow-lg': '0 0 40px rgba(219, 39, 119, 0.4)',
+              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+            },
+            animation: {
+              'blob': 'blob 10s infinite',
+              'shimmer': 'shimmer 3s linear infinite',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              shimmer: {
+                '0%': { backgroundPosition: '-1000px 0' },
+                '100%': { backgroundPosition: '1000px 0' }
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' }
+              }
             }
           }
         }
@@ -90,49 +74,60 @@
     </script>
     <style>
       body {
-        background-color: #020202;
-        color: #e5e7eb;
-        overflow-x: hidden;
+        background-color: #030014;
+        color: #e2e8f0;
       }
       
-      .bg-grid {
-        background-size: 40px 40px;
-        mask-image: linear-gradient(to bottom, black 5%, transparent 90%);
+      /* Subtle noise texture over everything to reduce banding and add texture */
+      .bg-noise {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
       }
 
-      /* Scrollbar */
-      ::-webkit-scrollbar { width: 4px; height: 4px; }
-      ::-webkit-scrollbar-track { background: #050505; }
-      ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-      ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
-
-      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.5); }
-
-      /* Input Reset */
-      input, textarea, select {
-        color-scheme: dark;
-      }
-      
-      .glass-panel {
-        background: rgba(10, 10, 10, 0.7);
+      .glass-card {
+        background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-      }
-
-      .text-shadow-sm {
-        text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
       }
       
-      .text-shadow-neon {
-        text-shadow: 0 0 5px rgba(0, 240, 255, 0.5), 0 0 10px rgba(0, 240, 255, 0.3);
+      .glass-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Premium Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
+      /* Gradient Text Utility */
+      .text-gradient {
+        background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      
+      .text-gradient-cyan {
+        background: linear-gradient(135deg, #22d3ee 0%, #818cf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
     </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",
@@ -144,14 +139,18 @@
 }
 </script>
 </head>
-  <body class="antialiased selection:bg-brand-500/30 selection:text-brand-200">
-    <!-- Dynamic Background Layers - Moved outside root to persist -->
-    <div class="fixed inset-0 z-[-2] bg-[#020202]"></div>
-    <div class="fixed inset-0 z-[-1] bg-cyber-grid bg-grid opacity-20 animate-grid-move pointer-events-none"></div>
-    <div class="fixed top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-500/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow"></div>
-    <div class="fixed bottom-[-10%] right-[10%] w-[500px] h-[500px] bg-accent-purple/10 blur-[150px] rounded-full pointer-events-none z-[-1] animate-pulse-slow" style="animation-delay: 2s"></div>
+  <body class="h-screen w-screen overflow-hidden text-slate-200 antialiased selection:bg-fuchsia-500/30 selection:text-white">
+    <!-- Dynamic Background -->
+    <div class="fixed inset-0 bg-[#030014] z-[-5]"></div>
+    <div class="bg-noise"></div>
+    <div class="fixed inset-0 bg-grid-pattern opacity-20 z-[-4]"></div>
+    
+    <!-- Moving Blobs (Aurora Effect) -->
+    <div class="fixed top-[-10%] left-[-10%] w-[800px] h-[800px] bg-purple-600/20 blur-[120px] rounded-full mix-blend-screen animate-blob z-[-3]"></div>
+    <div class="fixed top-[20%] right-[-10%] w-[600px] h-[600px] bg-cyan-500/10 blur-[100px] rounded-full mix-blend-screen animate-blob animation-delay-2000 z-[-3]"></div>
+    <div class="fixed bottom-[-10%] left-[20%] w-[700px] h-[700px] bg-pink-600/15 blur-[120px] rounded-full mix-blend-screen animate-blob animation-delay-4000 z-[-3]"></div>
 
-    <div id="root" class="h-screen w-screen relative flex flex-col overflow-hidden font-sans text-gray-200"></div>
+    <div id="root" class="h-full w-full flex flex-col font-sans"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

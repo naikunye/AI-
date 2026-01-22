@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { GeneratedReplyOption, ReplyType } from '../types';
-import { Copy, Check, Lock, Globe, Bookmark, BookmarkCheck, Terminal, Sparkles, MessageSquare } from 'lucide-react';
-import { REPLY_TYPE_LABELS } from '../constants';
+import { Copy, Check, Lock, Globe, Bookmark, BookmarkCheck, Wand2 } from 'lucide-react';
 
 interface ReplyCardProps {
   option: GeneratedReplyOption;
@@ -12,25 +12,6 @@ interface ReplyCardProps {
 export const ReplyCard: React.FC<ReplyCardProps> = ({ option, index, onSave }) => {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-  
-  // Typing effect state
-  const [displayedText, setDisplayedText] = useState('');
-  const fullText = option.bodyEnglish;
-
-  useEffect(() => {
-    let i = 0;
-    setDisplayedText('');
-    const speed = 10; // Typing speed in ms
-    const interval = setInterval(() => {
-      if (i < fullText.length) {
-        setDisplayedText((prev) => prev + fullText.charAt(i));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, speed);
-    return () => clearInterval(interval);
-  }, [fullText]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(option.bodyEnglish);
@@ -47,85 +28,80 @@ export const ReplyCard: React.FC<ReplyCardProps> = ({ option, index, onSave }) =
   const isPrivate = option.type === ReplyType.PRIVATE;
 
   return (
-    <div className="group relative flex flex-col h-full glass-panel rounded-xl overflow-hidden transition-all duration-300 hover:shadow-neon hover:border-brand-500/30 animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+    <div 
+      className="flex flex-col h-full glass-card rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 group animate-fade-in relative" 
+      style={{ animationDelay: `${index * 150}ms` }}
+    >
+      {/* Subtle colorful glow on hover */}
+      <div className="absolute -inset-px bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"></div>
       
-      {/* Decorative Top Line */}
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-50"></div>
-
       {/* Header */}
-      <div className="px-5 py-4 border-b border-white/5 flex justify-between items-start bg-black/20">
-        <div className="flex flex-col gap-1.5">
+      <div className="px-6 py-5 border-b border-white/5 flex justify-between items-start bg-white/[0.02]">
+        <div className="flex flex-col gap-2 relative z-10">
           <div className="flex items-center gap-2">
-            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 border uppercase tracking-widest ${
-              isPrivate 
-                ? 'bg-accent-purple/10 text-accent-purple border-accent-purple/30' 
-                : 'bg-brand-500/10 text-brand-400 border-brand-500/30'
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider border ${
+               isPrivate ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20'
             }`}>
-              {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-              {isPrivate ? 'PRIVATE' : 'PUBLIC'}
+              {isPrivate ? <Lock size={10} /> : <Globe size={10} />}
+              {isPrivate ? '私信/邮件' : '公开回复'}
             </span>
-            <span className="text-[10px] text-gray-500 font-mono">OPT-{index + 1}</span>
           </div>
-          <h4 className="font-bold text-white text-base tracking-tight text-shadow-sm">
+          <h4 className="font-bold text-white text-base tracking-tight leading-snug">
             {option.headline}
           </h4>
         </div>
         
         <button
           onClick={handleSaveClick}
-          className={`p-2 rounded-lg transition-all border ${
+          className={`relative z-10 p-2 rounded-lg transition-all ${
             saved 
-              ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30' 
-              : 'text-gray-500 border-transparent hover:text-white hover:bg-white/5'
+              ? 'text-yellow-400 bg-yellow-400/10' 
+              : 'text-slate-500 hover:text-white hover:bg-white/10'
           }`}
+          title="保存至话术库"
         >
-          {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+          {saved ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
         </button>
       </div>
       
-      {/* Body Content */}
-      <div className="p-5 flex-1 flex flex-col gap-4">
+      {/* Body */}
+      <div className="p-6 flex-1 flex flex-col gap-6 relative z-10">
         
-        {/* Chinese Reference */}
-        <div className="relative pl-3 border-l-2 border-white/10">
-            <p className="text-gray-400 text-xs leading-relaxed font-sans">
+        {/* Context */}
+        <div className="pl-3 border-l-2 border-slate-700/50">
+            <p className="text-slate-400 text-xs leading-relaxed font-medium">
               {option.bodyChinese}
             </p>
         </div>
 
-        {/* English Output (Terminal Style) */}
-        <div className="flex-1 bg-black/40 rounded-lg border border-white/5 p-4 relative group/code mt-2">
-          <div className="absolute top-2 right-3 flex gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-red-500/40"></div>
-            <div className="w-2 h-2 rounded-full bg-yellow-500/40"></div>
-            <div className="w-2 h-2 rounded-full bg-green-500/40"></div>
-          </div>
-          
-          <div className="font-mono text-sm leading-relaxed text-brand-50 mt-4 min-h-[100px] whitespace-pre-wrap">
-             {displayedText}
-             <span className="inline-block w-2 h-4 bg-brand-500 ml-1 animate-pulse align-middle"></span>
+        {/* Output Block */}
+        <div className="flex-1 bg-[#050911] rounded-xl border border-white/5 p-4 relative group/code shadow-inner">
+          <div className="font-mono text-sm leading-relaxed text-slate-200 whitespace-pre-wrap select-text">
+             {option.bodyEnglish}
           </div>
 
-          <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover/code:opacity-100 transition-opacity">
+          <div className="absolute top-3 right-3 opacity-0 group-hover/code:opacity-100 transition-opacity">
             <button
                 onClick={handleCopy}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-bold transition-all border backdrop-blur-md ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
                   copied 
-                    ? 'bg-green-500/20 text-green-400 border-green-500/50' 
-                    : 'bg-white/10 text-white border-white/20 hover:bg-brand-500/20 hover:border-brand-500/50'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' 
+                    : 'bg-white/10 text-slate-300 border-white/10 hover:bg-white/20 hover:text-white'
                 }`}
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                {copied ? 'COPIED' : 'COPY'}
+                {copied ? '已复制' : '复制'}
             </button>
           </div>
         </div>
         
-        {/* Analysis Footer */}
-        <div className="pt-3 border-t border-white/5 flex items-start gap-2">
-           <Sparkles className="w-3 h-3 text-brand-500 mt-0.5" />
-           <p className="text-[10px] text-gray-500 leading-relaxed font-mono">
-             <span className="text-brand-500">AI_ANALYSIS:</span> {option.toneAnalysis}
+        {/* Logic Footer */}
+        <div className="pt-4 border-t border-white/5 flex items-start gap-2.5">
+           <div className="mt-0.5 w-4 h-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+             <Wand2 className="w-2.5 h-2.5 text-white" />
+           </div>
+           <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">
+             {option.toneAnalysis}
            </p>
         </div>
       </div>

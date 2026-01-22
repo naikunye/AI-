@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { Platform, Tone, GenerationResult, ReviewContext, HistoryItem, Resolution, SavedTemplate, TemplateCategory, GeneratedReplyOption, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory, ReviewClassification } from './types';
-import { PLATFORM_CONFIG, TONE_CONFIG, RESOLUTION_CONFIG, CLASSIFICATION_CONFIG, LENGTH_CONFIG, EMOJI_CONFIG, STYLE_CONFIG, CATEGORY_CONFIG } from './constants';
+import { Platform, Tone, GenerationResult, ReviewContext, HistoryItem, Resolution, SavedTemplate, TemplateCategory, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory, ReviewClassification } from './types';
+import { PLATFORM_CONFIG, TONE_CONFIG, RESOLUTION_CONFIG, CLASSIFICATION_CONFIG, LENGTH_CONFIG, STYLE_CONFIG, CATEGORY_CONFIG } from './constants';
 import { generateReviewReply } from './services/geminiService';
 import { HistoryList } from './components/HistoryList';
 import { ReplyCard } from './components/ReplyCard';
@@ -8,70 +9,76 @@ import { TemplateLibrary } from './components/TemplateLibrary';
 import { ProcessingTerminal } from './components/ProcessingTerminal';
 import { DEFAULT_TEMPLATES } from './data/defaultTemplates';
 import { 
-  Sparkles, 
-  Settings2, 
-  AlertCircle, 
+  Zap, 
   Menu, 
   X,
-  MessageCircle,
-  ShieldCheck,
   LayoutDashboard,
-  Library,
-  Save,
-  Zap,
-  Cpu,
+  Database,
   RefreshCcw,
-  Wand2,
+  ChevronDown,
+  Settings,
+  Sliders,
+  Sparkles,
+  Save,
   Package,
-  Activity,
-  AlertTriangle,
-  ChevronRight,
-  Terminal,
-  Play,
-  SlidersHorizontal,
-  Bookmark
+  Globe,
+  PenTool,
 } from 'lucide-react';
 
-// --- UI Components ---
+// --- Modern UI Components ---
 
-const SectionHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
+const ModernHeader = ({ title, icon: Icon }: { title: string, icon?: any }) => (
   <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/5">
-    <Icon className="w-4 h-4 text-brand-500" />
-    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
+    {Icon && <Icon className="w-4 h-4 text-fuchsia-400" />}
+    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</h3>
   </div>
 );
 
-// Custom Segmented Control
-const SegmentControl = <T extends string>({ options, value, onChange, label }: { options: { value: T, label: string, icon?: any }[], value: T, onChange: (v: T) => void, label?: string }) => (
-  <div className="space-y-2">
-    {label && <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</label>}
-    <div className="flex bg-black/40 p-1 rounded-lg border border-white/10">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded-md transition-all ${
-            value === opt.value 
-              ? 'bg-white/10 text-white shadow-lg border border-white/10' 
-              : 'text-gray-600 hover:text-gray-300 hover:bg-white/5'
-          }`}
-        >
-          {opt.icon && React.createElement(opt.icon, { size: 14 })}
-          <span className="hidden xl:inline">{opt.label}</span>
-        </button>
-      ))}
+// Pill Segment Control
+const ModernSegment = <T extends string>({ options, value, onChange }: { options: { value: T, label: string, icon?: any }[], value: T, onChange: (v: T) => void }) => (
+  <div className="flex p-1 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
+    {options.map((opt) => (
+      <button
+        key={opt.value}
+        onClick={() => onChange(opt.value)}
+        className={`flex-1 relative flex flex-col xl:flex-row items-center justify-center gap-2 py-2 px-2 rounded-lg transition-all duration-300 ${
+          value === opt.value 
+            ? 'bg-white/10 text-white shadow-lg shadow-purple-500/10 border border-white/10' 
+            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+        }`}
+      >
+        {opt.icon && React.createElement(opt.icon, { size: 14, className: value === opt.value ? 'text-fuchsia-400' : 'text-slate-500' })}
+        <span className="text-[10px] xl:text-xs font-medium">{opt.label}</span>
+      </button>
+    ))}
+  </div>
+);
+
+// Glass Select
+const ModernSelect = ({ value, onChange, options, label, icon: Icon }: any) => (
+  <div className="group relative">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2 px-1">
+       {Icon && <Icon size={12} className="text-cyan-400" />}
+       {label}
+    </label>
+    <div className="relative">
+      <select 
+        value={value} 
+        onChange={onChange}
+        className="w-full bg-white/5 border border-white/10 text-slate-200 text-sm rounded-xl py-3 px-4 appearance-none hover:bg-white/10 hover:border-white/20 focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500/50 transition-all cursor-pointer outline-none"
+      >
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value} className="bg-[#0f172a] text-slate-200">{opt.label}</option>
+        ))}
+      </select>
+      <div className="absolute right-4 top-3.5 pointer-events-none text-slate-500 group-hover:text-slate-300 transition-colors">
+        <ChevronDown size={14} />
+      </div>
     </div>
   </div>
 );
 
-// --- Presets Data ---
-const PRESETS = [
-  { id: 'standard', label: '标准客服', icon: MessageCircle, config: { tone: Tone.PROFESSIONAL, length: ReplyLength.MEDIUM, emoji: EmojiLevel.MINIMAL } },
-  { id: 'apology', label: '高危安抚', icon: ShieldCheck, config: { tone: Tone.EMPATHETIC, length: ReplyLength.LONG, emoji: EmojiLevel.NONE } },
-  { id: 'tiktok', label: 'TikTok 活力', icon: Zap, config: { tone: Tone.WITTY, length: ReplyLength.SHORT, emoji: EmojiLevel.HEAVY } },
-];
-
-// --- Main App ---
+// --- Main Application ---
 
 const App: React.FC = () => {
   // Navigation
@@ -108,27 +115,27 @@ const App: React.FC = () => {
   // Initial Load
   useEffect(() => {
     try {
-      const hist = localStorage.getItem('replyWiseHistory_v3');
+      const hist = localStorage.getItem('replyWiseHistory_v5');
       if (hist) setHistory(JSON.parse(hist));
-      const tmpl = localStorage.getItem('replyWiseTemplates_v3');
+      const tmpl = localStorage.getItem('replyWiseTemplates_v5');
       setSavedTemplates(tmpl ? JSON.parse(tmpl) : DEFAULT_TEMPLATES);
     } catch (e) { console.error(e); }
   }, []);
 
   // Save Effect
   useEffect(() => {
-    localStorage.setItem('replyWiseHistory_v3', JSON.stringify(history));
-    localStorage.setItem('replyWiseTemplates_v3', JSON.stringify(savedTemplates));
+    localStorage.setItem('replyWiseHistory_v5', JSON.stringify(history));
+    localStorage.setItem('replyWiseTemplates_v5', JSON.stringify(savedTemplates));
   }, [history, savedTemplates]);
 
   const handleGenerate = async () => {
     if (!reviewText.trim()) return;
     setLoading(true);
     setError(null);
-    setResult(null); // Clear previous result to show terminal
+    setResult(null); 
     
-    // Minimum 2s delay to show off the terminal animation
-    const minDelay = new Promise(resolve => setTimeout(resolve, 3000));
+    // Smooth transition time
+    const minDelay = new Promise(resolve => setTimeout(resolve, 2500));
     
     try {
       const finalContext = { ...context, category: productCategory };
@@ -140,13 +147,12 @@ const App: React.FC = () => {
       setResult(res);
       setHistory(prev => [{ id: Date.now().toString(), timestamp: Date.now(), originalReview: reviewText, platform, result: res }, ...prev].slice(0, 50));
     } catch (e: any) {
-      setError(e.message || "System Malfunction");
+      setError(e.message || "系统出了点小问题，请重试");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Quick Actions ---
   const saveTemplate = () => {
     if (!editingTemplate.title) return;
     const newTmpl = { ...editingTemplate, tags: tagsInput.split(/[,，]/).map(t => t.trim()).filter(Boolean), id: editingTemplate.id || Date.now().toString(), createdAt: Date.now() } as SavedTemplate;
@@ -154,316 +160,257 @@ const App: React.FC = () => {
     setIsSaveModalOpen(false);
   };
 
-  const applyPreset = (presetId: string) => {
-    const preset = PRESETS.find(p => p.id === presetId);
-    if (preset) {
-      setTone(preset.config.tone);
-      setReplyLength(preset.config.length);
-      setEmojiLevel(preset.config.emoji);
-    }
-  };
-
   return (
-    <div className="flex h-screen text-gray-200 overflow-hidden font-sans">
+    <div className="flex h-screen text-slate-200 overflow-hidden font-sans bg-transparent">
       
-      {/* --- Sidebar (Command Rail) --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 glass-panel border-r-0 border-r-white/10 transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex flex-col h-full bg-black/40">
+      {/* --- Glass Sidebar --- */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-20 lg:w-24 bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col items-center py-8 transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          
           {/* Logo */}
-          <div className="h-20 flex items-center px-6 border-b border-white/5 relative overflow-hidden shrink-0">
-             <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-transparent opacity-50"></div>
-             <div className="flex items-center gap-3 relative z-10">
-               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500/20 to-blue-600/20 border border-brand-500/50 flex items-center justify-center text-brand-400 shadow-neon">
-                 <Zap className="w-6 h-6" />
-               </div>
-               <div>
-                 <h1 className="font-bold text-lg text-white tracking-tight leading-none">REPLY<span className="text-brand-400">WISE</span></h1>
-                 <span className="text-[9px] font-mono text-gray-500 tracking-widest uppercase">AI Command Center v2.0</span>
-               </div>
+          <div className="relative group mb-12 cursor-pointer">
+             <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 flex items-center justify-center relative z-10 shadow-2xl">
+                <Zap className="w-6 h-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 fill-current" />
              </div>
-             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden ml-auto text-gray-500"><X /></button>
           </div>
 
-          {/* Navigation */}
-          <nav className="p-4 space-y-2 shrink-0">
-             <button onClick={() => setCurrentView('generator')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all border ${currentView === 'generator' ? 'bg-brand-500/10 text-brand-400 border-brand-500/30 shadow-[0_0_15px_-3px_rgba(0,240,255,0.2)]' : 'border-transparent text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                <LayoutDashboard className="w-4 h-4" /> <span>作战指挥台 (OPS)</span>
+          {/* Nav Items */}
+          <nav className="flex-1 space-y-4 w-full px-3">
+             <button 
+                onClick={() => setCurrentView('generator')} 
+                className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group relative overflow-hidden ${currentView === 'generator' ? 'bg-white/10 text-white shadow-inner ring-1 ring-white/5' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'}`}
+             >
+                {currentView === 'generator' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>}
+                <LayoutDashboard className={`w-5 h-5 ${currentView === 'generator' ? 'text-fuchsia-400' : ''}`} />
+                <span className="text-[11px] font-bold">智能生成</span>
              </button>
-             <button onClick={() => setCurrentView('library')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all border ${currentView === 'library' ? 'bg-brand-500/10 text-brand-400 border-brand-500/30 shadow-[0_0_15px_-3px_rgba(0,240,255,0.2)]' : 'border-transparent text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                <Library className="w-4 h-4" /> <span>战术资料库 (DB)</span>
+
+             <button 
+                onClick={() => setCurrentView('library')} 
+                className={`w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 group relative overflow-hidden ${currentView === 'library' ? 'bg-white/10 text-white shadow-inner ring-1 ring-white/5' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'}`}
+             >
+                {currentView === 'library' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-500 to-blue-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>}
+                <Database className={`w-5 h-5 ${currentView === 'library' ? 'text-cyan-400' : ''}`} />
+                <span className="text-[11px] font-bold">话术库</span>
              </button>
           </nav>
-
-          {/* Tactical Presets (Quick Access) */}
-          <div className="px-4 py-2 shrink-0">
-             <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3 px-2">Tactical Presets</div>
-             <div className="grid grid-cols-1 gap-2">
-                {PRESETS.map(p => (
-                   <button key={p.id} onClick={() => applyPreset(p.id)} className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 hover:border-brand-500/30 transition-all text-left group">
-                      <p.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-brand-400" />
-                      <span className="text-xs text-gray-400 group-hover:text-white font-medium">{p.label}</span>
-                   </button>
-                ))}
-             </div>
-          </div>
-
-          {/* System Status */}
-          <div className="mt-auto p-6 border-t border-white/5 shrink-0">
-             <div className="bg-black/40 rounded-xl p-3 border border-white/5 space-y-2 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-brand-500/5 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500"></div>
-                <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono uppercase relative z-10">
-                  <span>System Status</span>
-                  <span className="text-emerald-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE</span>
-                </div>
-                <div className="w-full bg-gray-800 h-0.5 rounded-full overflow-hidden relative z-10">
-                  <div className="bg-brand-500 w-1/2 h-full animate-pulse-slow"></div>
-                </div>
-                <div className="text-[9px] text-brand-500 font-mono relative z-10">GEMINI NEURAL ENGINE CONNECTED</div>
-             </div>
-          </div>
-        </div>
       </aside>
 
-      {/* --- Main Content --- */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-transparent">
+      {/* --- Main Workspace --- */}
+      <main className="flex-1 flex flex-col relative overflow-hidden">
         
         {currentView === 'generator' ? (
           <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
              
-             {/* LEFT PANEL: INPUT & CONTROLS (Scrollable) */}
-             <div className="flex-1 lg:w-[420px] xl:w-[480px] flex flex-col border-r border-white/5 bg-dark-bg/80 backdrop-blur-md overflow-y-auto custom-scrollbar shrink-0">
+             {/* LEFT PANEL: INPUT & CONFIG */}
+             <div className="flex-1 lg:max-w-[480px] xl:max-w-[540px] flex flex-col border-r border-white/5 bg-black/20 backdrop-blur-xl z-10">
                 
                 {/* Mobile Header */}
-                <header className="lg:hidden h-16 flex items-center justify-between px-6 border-b border-white/5 shrink-0 bg-black/50 backdrop-blur-md sticky top-0 z-20">
+                <header className="lg:hidden h-16 flex items-center justify-between px-6 border-b border-white/5 bg-black/40 backdrop-blur-md">
                    <div className="font-bold text-white flex items-center gap-2">
-                      <Zap className="w-5 h-5 text-brand-500" /> REPLYWISE
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">ReplyWise AI</span>
                    </div>
-                   <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-brand-400"><Menu /></button>
+                   <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-400"><Menu size={24} /></button>
                 </header>
 
-                <div className="p-6 space-y-8 pb-32">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 space-y-8">
                    
-                   {/* 1. Review Input */}
+                   {/* 1. INPUT CARD */}
                    <section>
-                      <SectionHeader icon={Terminal} title="输入源 (INPUT STREAM)" />
+                      <div className="flex justify-between items-center mb-3">
+                         <div className="flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#d946ef]"></div>
+                           <h2 className="text-sm font-bold text-white tracking-wide">客户反馈 / 评论</h2>
+                         </div>
+                         <div className="text-[10px] text-slate-500 font-mono bg-white/5 px-2 py-1 rounded-md">{reviewText.length} 字</div>
+                      </div>
+                      
                       <div className="relative group">
-                         <div className="absolute inset-0 bg-brand-500/5 rounded-xl blur-sm group-hover:bg-brand-500/10 transition-colors opacity-0 group-hover:opacity-100"></div>
-                         <textarea
-                            value={reviewText}
-                            onChange={(e) => setReviewText(e.target.value)}
-                            placeholder="> 等待输入客户评论数据..."
-                            className="relative w-full h-40 bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-mono text-gray-300 placeholder:text-gray-700 focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 outline-none resize-none custom-scrollbar transition-all"
-                         />
-                         <div className="absolute bottom-3 right-3 text-[9px] font-mono text-gray-600 pointer-events-none">
-                            {reviewText.length} CHARS
+                         <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 group-hover:opacity-50 transition duration-500 blur-sm"></div>
+                         <div className="relative bg-[#0b0f19] rounded-2xl p-1 overflow-hidden">
+                           <textarea
+                              value={reviewText}
+                              onChange={(e) => setReviewText(e.target.value)}
+                              placeholder="请粘贴买家的评论或私信内容..."
+                              className="w-full h-40 bg-transparent rounded-xl p-4 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none resize-none leading-relaxed custom-scrollbar"
+                           />
                          </div>
                       </div>
                    </section>
 
-                   {/* 2. Strategy Controls */}
-                   <section className="space-y-6">
-                      <SectionHeader icon={Settings2} title="战术配置 (STRATEGY)" />
+                   {/* 2. STRATEGY SETTINGS */}
+                   <section>
+                      <ModernHeader title="策略配置" icon={Settings} />
                       
-                      {/* Platform & Category */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">目标平台</label>
-                          <div className="relative">
-                            <select 
-                              value={platform} onChange={(e) => setPlatform(e.target.value as Platform)}
-                              className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-gray-300 outline-none focus:border-brand-500 appearance-none"
-                            >
-                               {Object.values(Platform).map(p => <option key={p} value={p}>{PLATFORM_CONFIG[p].label}</option>)}
-                            </select>
-                            <div className="absolute right-3 top-3 pointer-events-none text-gray-500"><ChevronRight className="w-3 h-3 rotate-90" /></div>
-                          </div>
+                      <div className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                           <ModernSelect 
+                              label="销售平台"
+                              icon={Globe}
+                              value={platform}
+                              onChange={(e: any) => setPlatform(e.target.value)}
+                              options={Object.values(Platform).map(p => ({ value: p, label: PLATFORM_CONFIG[p].label }))}
+                           />
+                           <ModernSelect 
+                              label="产品类目"
+                              icon={Package}
+                              value={productCategory}
+                              onChange={(e: any) => setProductCategory(e.target.value)}
+                              options={Object.values(ProductCategory).map(c => ({ value: c, label: CATEGORY_CONFIG[c].label }))}
+                           />
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">产品领域</label>
-                          <div className="relative">
-                            <select 
-                              value={productCategory} onChange={(e) => setProductCategory(e.target.value as ProductCategory)}
-                              className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-gray-300 outline-none focus:border-brand-500 appearance-none"
-                            >
-                               {Object.values(ProductCategory).map(c => <option key={c} value={c}>{CATEGORY_CONFIG[c].label}</option>)}
-                            </select>
-                            <div className="absolute right-3 top-3 pointer-events-none text-gray-500"><ChevronRight className="w-3 h-3 rotate-90" /></div>
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* Context Fields */}
-                      <div className="grid grid-cols-2 gap-4">
-                         <input 
-                           placeholder="产品名称 (可选)" 
-                           className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-gray-300 outline-none focus:border-brand-500 placeholder:text-gray-700"
-                           value={context.productName || ''} onChange={(e) => setContext({...context, productName: e.target.value})}
-                         />
-                         <input 
-                           placeholder="客户姓名 (可选)" 
-                           className="bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-gray-300 outline-none focus:border-brand-500 placeholder:text-gray-700"
-                           value={context.customerName || ''} onChange={(e) => setContext({...context, customerName: e.target.value})}
+                        <div>
+                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block px-1">语气语调</label>
+                           <ModernSegment 
+                              value={tone} onChange={(val) => setTone(val)}
+                              options={Object.values(Tone).map(t => ({ value: t, label: TONE_CONFIG[t].label.split('(')[0], icon: TONE_CONFIG[t].icon }))}
+                           />
+                        </div>
+
+                        <ModernSelect 
+                            label="解决方案 / 行动"
+                            icon={Sliders}
+                            value={resolution}
+                            onChange={(e: any) => setResolution(e.target.value)}
+                            options={Object.values(Resolution).map(r => ({ value: r, label: RESOLUTION_CONFIG[r].label }))}
                          />
                       </div>
+                   </section>
 
-                      {/* Tone & Resolution */}
-                      <SegmentControl 
-                        label="语气基调 (Tone)"
-                        value={tone} onChange={(val) => setTone(val)}
-                        options={Object.values(Tone).map(t => ({ value: t, label: TONE_CONFIG[t].label.split('(')[0], icon: TONE_CONFIG[t].icon }))}
-                      />
+                   {/* 3. TWEAKS */}
+                   <section>
+                      <ModernHeader title="精细调整" icon={PenTool} />
                       
-                      <div className="space-y-2">
-                          <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">解决方案 (Action)</label>
-                          <div className="relative">
-                            <select 
-                              value={resolution} onChange={(e) => setResolution(e.target.value as Resolution)}
-                              className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs text-gray-300 outline-none focus:border-brand-500 appearance-none"
-                            >
-                               {Object.values(Resolution).map(r => <option key={r} value={r}>{RESOLUTION_CONFIG[r].label}</option>)}
-                            </select>
-                            <div className="absolute right-3 top-3.5 pointer-events-none text-gray-500"><ChevronRight className="w-3 h-3 rotate-90" /></div>
-                          </div>
+                      <div className="space-y-6">
+                         <ModernSegment 
+                             value={replyLength} onChange={(val) => setReplyLength(val)}
+                             options={Object.values(ReplyLength).map(l => ({ value: l, label: LENGTH_CONFIG[l].label.split('(')[0], icon: LENGTH_CONFIG[l].icon }))}
+                          />
+
+                        <div className="grid grid-cols-2 gap-6 items-end">
+                           <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">Emoji 表情浓度</label>
+                              <div className="flex justify-between items-center gap-2">
+                                 {Object.values(EmojiLevel).map((lvl, idx) => {
+                                    const isSelected = emojiLevel === lvl;
+                                    return (
+                                       <button 
+                                          key={lvl}
+                                          onClick={() => setEmojiLevel(lvl)}
+                                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${isSelected ? 'bg-fuchsia-500 shadow-[0_0_8px_#d946ef]' : 'bg-white/10 hover:bg-white/20'}`}
+                                       />
+                                    )
+                                 })}
+                              </div>
+                              <div className="flex justify-between mt-2 text-[10px] text-slate-500 font-medium">
+                                 <span>无</span><span>丰富</span>
+                              </div>
+                           </div>
+                           
+                           <ModernSelect 
+                              label="语言风格"
+                              value={languageStyle}
+                              onChange={(e: any) => setLanguageStyle(e.target.value)}
+                              options={Object.values(LanguageStyle).map(s => ({ value: s, label: STYLE_CONFIG[s].label.split('(')[0] }))}
+                           />
+                        </div>
                       </div>
                    </section>
 
-                   {/* 3. Advanced Styles */}
-                   <section className="space-y-4">
-                      <SectionHeader icon={SlidersHorizontal} title="微调参数 (PARAMETERS)" />
-                      <SegmentControl 
-                        label="篇幅长度"
-                        value={replyLength} onChange={(val) => setReplyLength(val)}
-                        options={Object.values(ReplyLength).map(l => ({ value: l, label: LENGTH_CONFIG[l].label.split(' ')[0], icon: LENGTH_CONFIG[l].icon }))}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                         <div>
-                            <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">表情浓度</label>
-                            <input 
-                              type="range" min="0" max="2" step="1" 
-                              value={Object.values(EmojiLevel).indexOf(emojiLevel)}
-                              onChange={(e) => setEmojiLevel(Object.values(EmojiLevel)[parseInt(e.target.value)])}
-                              className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-brand-500"
-                            />
-                            <div className="flex justify-between text-[9px] text-gray-500 mt-2 font-mono uppercase">
-                               <span>无</span><span>适中</span><span>丰富</span>
-                            </div>
-                         </div>
-                         <div>
-                            <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">语言风格</label>
-                            <div className="relative">
-                              <select 
-                                value={languageStyle} onChange={(e) => setLanguageStyle(e.target.value as LanguageStyle)}
-                                className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-gray-300 outline-none focus:border-brand-500 appearance-none"
-                              >
-                                 {Object.values(LanguageStyle).map(s => <option key={s} value={s}>{STYLE_CONFIG[s].label.split('(')[0]}</option>)}
-                              </select>
-                              <div className="absolute right-2 top-2.5 pointer-events-none text-gray-500"><ChevronRight className="w-3 h-3 rotate-90" /></div>
-                            </div>
-                         </div>
-                      </div>
-                   </section>
+                   <div className="h-24"></div> {/* Safe space */}
+                </div>
 
-                   {/* Action Button */}
-                   <div className="sticky bottom-6 z-10">
-                     <button 
-                       onClick={handleGenerate}
-                       disabled={loading || !reviewText.trim()}
-                       className={`w-full py-4 rounded-xl font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 transition-all relative overflow-hidden group shadow-lg ${
-                         loading || !reviewText.trim() 
-                         ? 'bg-gray-800 text-gray-600 border border-gray-700' 
-                         : 'bg-brand-600 text-white shadow-neon border border-brand-400/50 hover:bg-brand-500 hover:scale-[1.01]'
-                       }`}
-                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                        {loading ? <RefreshCcw className="animate-spin w-4 h-4" /> : <Play className="fill-current w-4 h-4" />}
-                        <span className="text-xs">{loading ? 'PROCESSING...' : 'INITIATE GENERATION'}</span>
-                     </button>
-                   </div>
-
+                {/* Floating Generate Button */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#030014] via-[#030014]/90 to-transparent z-20">
+                   <button 
+                     onClick={handleGenerate}
+                     disabled={loading || !reviewText.trim()}
+                     className={`w-full py-4 rounded-2xl font-bold tracking-widest uppercase flex items-center justify-center gap-3 transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group ${
+                       loading || !reviewText.trim() 
+                       ? 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5' 
+                       : 'bg-primary-gradient text-white shadow-glow-lg border border-white/20'
+                     }`}
+                   >
+                      <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                      
+                      {loading ? <RefreshCcw className="animate-spin w-5 h-5" /> : <Sparkles className="w-5 h-5 fill-current" />}
+                      <span className="relative z-10">{loading ? '智能分析中...' : '生成 AI 回复'}</span>
+                   </button>
                 </div>
              </div>
 
-             {/* RIGHT PANEL: OUTPUT (Scrollable) */}
-             <div className="flex-1 bg-black/30 flex flex-col h-full overflow-hidden relative">
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                   <Cpu className="w-32 h-32 text-brand-900 animate-pulse-slow" />
+             {/* RIGHT PANEL: OUTPUT */}
+             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                
+                {/* Background Decoration */}
+                <div className="absolute top-0 right-0 p-10 opacity-30 pointer-events-none">
+                   <div className="w-64 h-64 bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
-                   
-                   {/* LOADING STATE: TERMINAL */}
-                   {loading && (
-                      <ProcessingTerminal />
-                   )}
+                <div className="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar">
+                   {loading && <ProcessingTerminal />}
 
-                   {/* EMPTY STATE */}
                    {!result && !loading && (
-                      <div className="h-full flex flex-col items-center justify-center text-gray-600 space-y-6">
-                         <div className="w-32 h-32 rounded-full border border-dashed border-gray-800 flex items-center justify-center relative">
-                            <div className="absolute inset-0 border-t border-brand-500/20 rounded-full animate-spin"></div>
-                            <Activity className="w-12 h-12 text-gray-700" />
-                         </div>
-                         <div className="text-center space-y-2">
-                           <p className="font-mono text-sm tracking-[0.2em] text-gray-500">SYSTEM STANDBY</p>
-                           <p className="text-xs text-gray-700">Waiting for data stream input...</p>
+                      <div className="h-full flex flex-col items-center justify-center space-y-8 opacity-60">
+                         <div className="relative group">
+                           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000"></div>
+                           <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md relative z-10">
+                              <Sparkles className="w-10 h-10 text-fuchsia-400 opacity-80" />
+                           </div>
+                        </div>
+                         <div className="text-center">
+                           <h2 className="text-2xl font-bold text-white tracking-tight mb-2">等待指令</h2>
+                           <p className="text-slate-500 font-medium">请在左侧输入客户反馈，开始智能分析。</p>
                          </div>
                       </div>
                    )}
 
-                   {/* RESULTS DISPLAY */}
                    {result && !loading && (
-                      <div className="space-y-8 animate-slide-up max-w-6xl mx-auto pb-20">
+                      <div className="space-y-8 max-w-6xl mx-auto pb-20 animate-fade-in">
                          
-                         {/* Dashboard Stats */}
-                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                            {/* Summary */}
-                            <div className="md:col-span-8 glass-panel rounded-xl p-6 border border-white/10 relative overflow-hidden group">
-                               <div className="absolute top-0 left-0 w-1 h-full bg-brand-500 group-hover:shadow-[0_0_15px_#00F0FF] transition-shadow"></div>
-                               <h3 className="text-[10px] font-bold text-brand-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                  <Activity className="w-3 h-3" /> INTELLIGENCE REPORT
+                         {/* Header Stats */}
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* AI Summary */}
+                            <div className="md:col-span-2 glass-card rounded-2xl p-6 relative overflow-hidden group">
+                               <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-pink-500"></div>
+                               <h3 className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                 <Sparkles size={12}/> 核心意图分析
                                </h3>
-                               <p className="text-sm text-gray-300 leading-relaxed font-light">{result.reviewSummary}</p>
+                               <p className="text-sm text-slate-300 leading-relaxed text-justify">{result.reviewSummary}</p>
                             </div>
 
                             {/* Risk Gauge */}
-                            <div className="md:col-span-4 glass-panel rounded-xl p-6 border border-white/10 flex flex-col items-center justify-center relative overflow-hidden">
-                               <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 w-full text-center">RISK INDEX</h3>
-                               <div className="relative w-28 h-28 flex items-center justify-center">
-                                  <svg className="w-full h-full transform -rotate-90 drop-shadow-lg">
-                                     <circle cx="56" cy="56" r="42" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="none" />
-                                     <circle 
-                                        cx="56" cy="56" r="42" 
-                                        stroke={result.riskScore > 50 ? '#EF4444' : '#10B981'} 
-                                        strokeWidth="8" 
-                                        fill="none" 
-                                        strokeDasharray={`${result.riskScore * 2.63} 263`} 
-                                        className="transition-all duration-1000 ease-out" 
-                                        strokeLinecap="round"
-                                     />
-                                  </svg>
-                                  <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                     <span className={`text-3xl font-bold ${result.riskScore > 50 ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-green-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`}>{result.riskScore}</span>
+                            <div className="glass-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
+                               <div className="flex justify-between items-start z-10">
+                                  <div>
+                                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">风险系数</h3>
+                                    <div className={`text-lg font-bold ${result.riskScore > 50 ? 'text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.5)]' : 'text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]'}`}>
+                                      {CLASSIFICATION_CONFIG[result.classification].label}
+                                    </div>
                                   </div>
+                                  <div className="text-2xl font-bold text-white/20">{result.riskScore}%</div>
                                </div>
-                               <div className={`text-[10px] font-bold uppercase mt-2 px-2 py-0.5 rounded border ${CLASSIFICATION_CONFIG[result.classification].color.replace('text-', 'text-').replace('bg-', 'bg-')}`}>
-                                  {CLASSIFICATION_CONFIG[result.classification].label}
+                               
+                               {/* Progress Bar */}
+                               <div className="mt-4 w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-1000 ${result.riskScore > 50 ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'}`} 
+                                    style={{ width: `${result.riskScore}%` }}
+                                  ></div>
                                </div>
                             </div>
                          </div>
 
-                         {/* Compliance */}
-                         <div className="glass-panel rounded-xl p-5 border border-white/10 bg-red-500/5 flex items-start gap-4 shadow-inner">
-                            <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20 text-red-400">
-                               <ShieldCheck className="w-5 h-5" />
+                         {/* Alerts */}
+                         {(result.classification === ReviewClassification.HIGH_RISK || result.classification === ReviewClassification.NEGATIVE) && (
+                            <div className="bg-red-500/10 rounded-2xl p-4 border border-red-500/20 flex gap-4 items-center backdrop-blur-md">
+                               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></div>
+                               <p className="text-sm text-red-200 font-medium tracking-wide">{result.complianceNotes}</p>
                             </div>
-                            <div>
-                               <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">COMPLIANCE PROTOCOL CHECK</h4>
-                               <p className="text-xs text-gray-400 leading-relaxed">{result.complianceNotes}</p>
-                            </div>
-                         </div>
+                         )}
 
-                         {/* Reply Cards */}
+                         {/* Options Cards */}
                          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                             {result.options.map((opt, i) => (
                                <ReplyCard 
@@ -471,13 +418,9 @@ const App: React.FC = () => {
                                  option={opt} 
                                  index={i} 
                                  onSave={(o) => {
-                                    // Intelligent Category Mapping
                                     let derivedCategory = TemplateCategory.OTHER;
-                                    if (result.classification === ReviewClassification.POSITIVE) {
-                                       derivedCategory = TemplateCategory.POSITIVE;
-                                    } else if (result.classification === ReviewClassification.NEGATIVE || result.classification === ReviewClassification.HIGH_RISK) {
-                                       derivedCategory = TemplateCategory.NEGATIVE;
-                                    }
+                                    if (result.classification === ReviewClassification.POSITIVE) derivedCategory = TemplateCategory.POSITIVE;
+                                    else if (result.classification === ReviewClassification.NEGATIVE || result.classification === ReviewClassification.HIGH_RISK) derivedCategory = TemplateCategory.NEGATIVE;
 
                                     setEditingTemplate({
                                        title: o.headline,
@@ -486,7 +429,6 @@ const App: React.FC = () => {
                                        platform: platform,
                                        category: derivedCategory
                                     });
-                                    // Auto-generate smart tags
                                     setTagsInput(`${result.classification}, ${platform}, ${o.type}`);
                                     setIsSaveModalOpen(true);
                                  }} 
@@ -494,11 +436,13 @@ const App: React.FC = () => {
                             ))}
                          </div>
 
-                         {/* History Log (Mini) */}
-                         <div className="pt-8 border-t border-white/5 opacity-80 hover:opacity-100 transition-opacity">
-                            <div className="flex items-center justify-between mb-4">
-                               <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">RECENT OPERATIONS LOG</h3>
-                               <button onClick={() => setHistory([])} className="text-[9px] text-gray-600 hover:text-red-400 uppercase">CLEAR LOGS</button>
+                         {/* History Section */}
+                         <div className="pt-10 border-t border-white/5">
+                            <div className="flex items-center justify-between mb-6">
+                               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">最近生成记录</h3>
+                               {history.length > 0 && (
+                                <button onClick={() => setHistory([])} className="text-[10px] text-slate-500 hover:text-white uppercase font-bold transition-colors">清除历史</button>
+                               )}
                             </div>
                             <HistoryList 
                                history={history} 
@@ -522,75 +466,66 @@ const App: React.FC = () => {
 
       </main>
 
-      {/* Save Modal */}
+      {/* Modern Save Modal */}
       {isSaveModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
-           <div className="bg-[#080808] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl p-6 m-4 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-brand-500 shadow-[0_0_10px_#00F0FF]"></div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl animate-fade-in p-4">
+           <div className="bg-[#0f172a] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative">
+              {/* Header Gradient */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
               
-              <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Save className="w-5 h-5 text-brand-500"/> 
-                    <span className="tracking-wide">SAVE TACTICAL NODE</span>
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                 <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-widest">
+                    <Save className="w-4 h-4 text-fuchsia-400"/> 保存至话术库
                  </h2>
-                 <button onClick={() => setIsSaveModalOpen(false)} className="text-gray-500 hover:text-white"><X className="w-5 h-5"/></button>
+                 <button onClick={() => setIsSaveModalOpen(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20}/></button>
               </div>
 
-              <div className="space-y-4">
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Title Identifier</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">话术标题</label>
                     <input 
                         value={editingTemplate.title || ''} 
                         onChange={e => setEditingTemplate({...editingTemplate, title: e.target.value})} 
-                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-white outline-none focus:border-brand-500 transition-colors"
-                        placeholder="e.g. Refund Protocol Alpha"
+                        placeholder="例如：通用好评回复"
+                        className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white font-medium outline-none focus:border-fuchsia-500 transition-colors placeholder:text-slate-600"
                     />
                  </div>
 
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Category</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">分类</label>
                         <select 
                             value={editingTemplate.category || 'Other'} 
                             onChange={e => setEditingTemplate({...editingTemplate, category: e.target.value as any})} 
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-gray-300 outline-none focus:border-brand-500"
+                            className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-xs text-slate-300 outline-none focus:border-fuchsia-500"
                         >
                            {Object.values(TemplateCategory).map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tags</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">标签</label>
                         <input 
                             value={tagsInput} 
                             onChange={e => setTagsInput(e.target.value)} 
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-gray-300 outline-none focus:border-brand-500" 
-                            placeholder="urgent, refund..."
+                            placeholder="标签1, 标签2"
+                            className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-xs text-slate-300 outline-none focus:border-fuchsia-500 placeholder:text-slate-600" 
                         />
                     </div>
                  </div>
 
                  <div className="space-y-2">
-                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Internal Notes (Chinese)</label>
-                     <textarea 
-                        value={editingTemplate.contentChinese || ''} 
-                        onChange={e => setEditingTemplate({...editingTemplate, contentChinese: e.target.value})} 
-                        className="w-full h-20 bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-gray-300 resize-none outline-none focus:border-brand-500" 
-                     />
-                 </div>
-
-                 <div className="space-y-2">
-                     <label className="text-[10px] font-bold text-brand-400 uppercase tracking-widest flex items-center gap-2"><Terminal className="w-3 h-3" /> Output Script (English)</label>
+                     <label className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-wider">回复内容 (英文)</label>
                      <textarea 
                         value={editingTemplate.contentEnglish || ''} 
                         onChange={e => setEditingTemplate({...editingTemplate, contentEnglish: e.target.value})} 
-                        className="w-full h-32 bg-black border border-white/10 rounded-lg p-3 text-sm font-mono text-brand-400 resize-none outline-none focus:border-brand-500/50" 
+                        className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-3 text-xs font-mono text-slate-200 resize-none outline-none focus:border-fuchsia-500" 
                      />
                  </div>
+              </div>
 
-                 <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-                    <button onClick={() => setIsSaveModalOpen(false)} className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Cancel</button>
-                    <button onClick={saveTemplate} className="px-6 py-2 bg-brand-600 text-white font-bold text-xs rounded-lg hover:bg-brand-500 uppercase tracking-wider shadow-neon transition-all hover:scale-105">Confirm Save</button>
-                 </div>
+              <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end gap-4 shrink-0">
+                 <button onClick={() => setIsSaveModalOpen(false)} className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider transition-colors">取消</button>
+                 <button onClick={saveTemplate} className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:shadow-glow-sm transition-all">确认保存</button>
               </div>
            </div>
         </div>

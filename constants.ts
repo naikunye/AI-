@@ -1,5 +1,6 @@
+
 import { Platform, Tone, ReviewClassification, Resolution, ReplyType, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory } from './types';
-import { ShoppingBag, MessageSquare, ShoppingCart, Globe, Heart, Briefcase, Smile, ShieldAlert, Gift, Gavel, RefreshCw, Undo2, Headphones, ThumbsUp, ThumbsDown, Minus, Zap, Monitor, Shirt, SprayCan, Home, Baby, Tent,  AlignJustify, AlignLeft, AlignRight, SmilePlus } from 'lucide-react';
+import { ShoppingBag, MessageSquare, ShoppingCart, Globe, Heart, Briefcase, Smile, ShieldAlert, Gift, Gavel, RefreshCw, Undo2, Headphones, ThumbsUp, ThumbsDown, Minus, AlignJustify, AlignLeft, AlignRight, SmilePlus, Monitor, Shirt, SprayCan, Home, Baby, Tent } from 'lucide-react';
 
 export const PLATFORM_CONFIG = {
   [Platform.AMAZON]: {
@@ -77,22 +78,22 @@ export const REPLY_TYPE_LABELS = {
 // --- NEW CONSTANTS ---
 
 export const LENGTH_CONFIG = {
-  [ReplyLength.SHORT]: { label: "简短 (Short)", icon: AlignJustify },
-  [ReplyLength.MEDIUM]: { label: "适中 (Medium)", icon: AlignLeft },
-  [ReplyLength.LONG]: { label: "详细 (Long)", icon: AlignRight },
+  [ReplyLength.SHORT]: { label: "简短", icon: AlignJustify },
+  [ReplyLength.MEDIUM]: { label: "适中", icon: AlignLeft },
+  [ReplyLength.LONG]: { label: "详细", icon: AlignRight },
 };
 
 export const EMOJI_CONFIG = {
-  [EmojiLevel.NONE]: { label: "无表情", icon: Minus },
-  [EmojiLevel.MINIMAL]: { label: "少量点缀", icon: Smile },
-  [EmojiLevel.HEAVY]: { label: "丰富活跃", icon: SmilePlus },
+  [EmojiLevel.NONE]: { label: "无", icon: Minus },
+  [EmojiLevel.MINIMAL]: { label: "少", icon: Smile },
+  [EmojiLevel.HEAVY]: { label: "多", icon: SmilePlus },
 };
 
 export const STYLE_CONFIG = {
-  [LanguageStyle.NATIVE_US]: { label: "美式地道 (Native US)" },
-  [LanguageStyle.BRITISH_FORMAL]: { label: "英式正式 (British)" },
-  [LanguageStyle.GEN_Z]: { label: "Z世代/俚语 (Gen Z)" },
-  [LanguageStyle.SIMPLE_ENGLISH]: { label: "简单英语 (Simple)" },
+  [LanguageStyle.NATIVE_US]: { label: "美式地道" },
+  [LanguageStyle.BRITISH_FORMAL]: { label: "英式正式" },
+  [LanguageStyle.GEN_Z]: { label: "Z世代/俚语" },
+  [LanguageStyle.SIMPLE_ENGLISH]: { label: "简单英语" },
 };
 
 export const CATEGORY_CONFIG = {
