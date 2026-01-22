@@ -3,8 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Platform, Tone, GenerationResult, ReviewContext, Resolution, ReviewClassification, ReplyType, ReplyLength, EmojiLevel, LanguageStyle, ProductCategory } from '../types';
 import { PLATFORM_CONFIG, RESOLUTION_CONFIG, CATEGORY_CONFIG } from '../constants';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Define the response schema
 const responseSchema = {
   type: Type.OBJECT,
@@ -42,6 +40,18 @@ const responseSchema = {
     }
   },
   required: ["classification", "riskScore", "reviewSummary", "complianceNotes", "options"]
+};
+
+// Lazy initialization of the AI client to prevent top-level crashes
+let ai: GoogleGenAI | null = null;
+
+const getAIClient = () => {
+  if (!ai) {
+    // We strictly use process.env.API_KEY as required. 
+    // In a production environment, ensure this is replaced by the build tool or polyfilled.
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  }
+  return ai;
 };
 
 export const generateReviewReply = async (
@@ -112,7 +122,8 @@ export const generateReviewReply = async (
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const client = getAIClient();
+    const response = await client.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
